@@ -16,10 +16,11 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from carehome.views import home
+from carehome.views import home, residents_list  # make sure residents_list is imported
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('allauth.urls')),  # Allauth login/logout/signup
     path('', home, name='home'),  # root route
+    path('residents/', residents_list, name='residents_list'),
 ]

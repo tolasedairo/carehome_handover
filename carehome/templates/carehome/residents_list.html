@@ -1,0 +1,19 @@
+<!-- carehome/templates/carehome/residents_list.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Residents List</title>
+</head>
+<body>
+    <h1>Residents List</h1>
+    <p>User Role: {{ user_role }}</p>
+
+    <ul>
+        {% for resident in residents %}
+            <li>{{ resident.first_name }} {{ resident.last_name }} - Room: {{ resident.room_number }}</li>
+        {% empty %}
+            <li>No residents found.</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
