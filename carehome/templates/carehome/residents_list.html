@@ -10,7 +10,10 @@
 
     <ul>
         {% for resident in residents %}
-            <li>{{ resident.first_name }} {{ resident.last_name }} - Room: {{ resident.room_number }}</li>
+            <li>
+                {{ resident.first_name }} {{ resident.last_name }} - Room: {{ resident.room_number }}
+                | <a href="{% url 'resident_handovers' resident.id %}">View Handovers</a>
+            </li>
         {% empty %}
             <li>No residents found.</li>
         {% endfor %}

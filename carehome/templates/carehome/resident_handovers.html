@@ -1,0 +1,16 @@
+<h2>Handovers for {{ resident }}</h2>
+
+<ul>
+    {% for handover in handovers %}
+        <li>
+            Shift: {{ handover.shift }} |
+            Notes: {{ handover.notes }} |
+            Created By: {{ handover.created_by }} |
+            Created: {{ handover.created_at }}
+        </li>
+    {% empty %}
+        <li>No handovers for this resident.</li>
+    {% endfor %}
+</ul>
+
+<a href="{% url 'residents_list' %}">Back to Residents</a>

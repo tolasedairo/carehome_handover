@@ -6,6 +6,7 @@ from .models import Handover
 from django.contrib.auth.decorators import login_required
 from .forms import HandoverForm
 from django.shortcuts import redirect
+from django.shortcuts import get_object_or_404
 
 
 # Create your views here.
@@ -67,3 +68,17 @@ def create_handover(request):
         form = HandoverForm()
 
     return render(request, 'carehome/create_handover.html', {'form': form})
+
+
+@login_required
+@role_based_access(['manager', 'senior_carer', 'carer'])
+def resident_handovers(request, resident_id):
+
+    resident = get_object_or_404(Resident, id=resident_id)
+
+    handovers = resident.handovers.all().order_by('-created_at')
+
+    return render(request, 'carehome/resident_handovers.html', {
+        'resident': resident,
+        'handovers': handovers
+    })
