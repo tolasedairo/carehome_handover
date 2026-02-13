@@ -4,6 +4,8 @@ from .decorators import role_based_access
 from .models import Resident
 from .models import Handover
 from django.contrib.auth.decorators import login_required
+from .forms import HandoverForm
+from django.shortcuts import redirect
 
 
 # Create your views here.
@@ -48,3 +50,20 @@ def handover_list(request):
     return render(request, 'carehome/handover_list.html', {
         'handovers': handovers
     })
+
+
+@login_required
+@role_based_access(['manager', 'senior_carer'])
+def create_handover(request):
+
+    if request.method == 'POST':
+        form = HandoverForm(request.POST)
+        if form.is_valid():
+            handover = form.save(commit=False)
+            handover.created_by = request.user
+            handover.save()
+            return redirect('handover_list')
+    else:
+        form = HandoverForm()
+
+    return render(request, 'carehome/create_handover.html', {'form': form})

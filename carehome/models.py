@@ -2,8 +2,9 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 
 
-
 # Create your models here.
+
+
 class CustomUser(AbstractUser):
     ROLE_CHOICES = [
         ('manager', 'Manager'),
@@ -14,7 +15,7 @@ class CustomUser(AbstractUser):
 
     def __str__(self):
         return f"{self.username} ({self.role})"
-    
+
 
 class Resident(models.Model):
     first_name = models.CharField(max_length=50)
@@ -30,7 +31,8 @@ class Resident(models.Model):
 
     def __str__(self):
         return f"{self.first_name} {self.last_name} (Room {self.room_number})"
-    
+
+
 class Handover(models.Model):
     SHIFT_CHOICES = [
         ('morning', 'Morning'),
@@ -38,7 +40,9 @@ class Handover(models.Model):
         ('night', 'Night'),
     ]
 
-    resident = models.ForeignKey(Resident, on_delete=models.CASCADE, related_name='handovers')
+    resident = models.ForeignKey(
+        Resident, on_delete=models.CASCADE, related_name='handovers'
+    )
     created_by = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
 
     shift = models.CharField(max_length=20, choices=SHIFT_CHOICES)

@@ -18,6 +18,7 @@ from django.contrib import admin
 from django.urls import path, include
 from carehome.views import home, residents_list
 from carehome.views import handover_list
+from carehome.views import create_handover
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -25,4 +26,5 @@ urlpatterns = [
     path('', home, name='home'),  # root route
     path('residents/', residents_list, name='residents_list'),
     path('handovers/', handover_list, name='handover_list'),
+    path('handovers/create/', create_handover, name='create_handover'),
 ]
