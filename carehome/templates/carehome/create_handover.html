@@ -1,7 +1,21 @@
 <h2>Create Handover</h2>
 
-<form method="post">
+<p>Resident: {{ resident.first_name }} {{ resident.last_name }} (Room {{ resident.room_number }})</p>
+
+<form method="POST">
     {% csrf_token %}
-    {{ form.as_p }}
+    
+    <p>
+        <label for="id_shift">Shift:</label><br>
+        {{ form.shift }}
+    </p>
+    
+    <p>
+        <label for="id_notes">Notes:</label><br>
+        {{ form.notes }}
+    </p>
+    
     <button type="submit">Submit</button>
 </form>
+
+<a href="{% url 'resident_handovers' resident.id %}">Back to Handovers</a>

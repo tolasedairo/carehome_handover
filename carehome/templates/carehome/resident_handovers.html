@@ -1,16 +1,32 @@
-<h2>Handovers for {{ resident }}</h2>
+<h2>Handovers for {{ resident.first_name }} {{ resident.last_name }} (Room {{ resident.room_number }})</h2>
 
-<ul>
-    {% for handover in handovers %}
-        <li>
-            Shift: {{ handover.shift }} |
-            Notes: {{ handover.notes }} |
-            Created By: {{ handover.created_by }} |
-            Created: {{ handover.created_at }}
-        </li>
-    {% empty %}
-        <li>No handovers for this resident.</li>
-    {% endfor %}
-</ul>
+{% if handovers %}
+    <table border="1" cellpadding="8" cellspacing="0">
+        <thead>
+            <tr>
+                <th>Shift</th>
+                <th>Notes</th>
+                <th>Created By</th>
+                <th>Created At</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for handover in handovers %}
+                <tr>
+                    <td>{{ handover.shift|title }}</td>
+                    <td>{{ handover.notes }}</td>
+                    <td>{{ handover.created_by }}</td>
+                    <td>{{ handover.created_at|date:"M. d, Y, h:i a" }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>No handovers for this resident.</p>
+{% endif %}
 
 <a href="{% url 'residents_list' %}">Back to Residents</a>
+
+{% if user.role in 'manager senior_carer carer' %}
+    | <a href="{% url 'create_handover' resident.id %}">Add Handover</a>
+{% endif %}

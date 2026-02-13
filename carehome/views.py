@@ -54,20 +54,25 @@ def handover_list(request):
 
 
 @login_required
-@role_based_access(['manager', 'senior_carer'])
-def create_handover(request):
+@role_based_access(['manager', 'senior_carer', 'carer'])
+def create_handover(request, resident_id):
+    resident = get_object_or_404(Resident, id=resident_id)
 
     if request.method == 'POST':
         form = HandoverForm(request.POST)
         if form.is_valid():
             handover = form.save(commit=False)
+            handover.resident = resident  # <-- Link to resident
             handover.created_by = request.user
             handover.save()
-            return redirect('handover_list')
+            return redirect('resident_handovers', resident_id=resident.id)
     else:
         form = HandoverForm()
 
-    return render(request, 'carehome/create_handover.html', {'form': form})
+    return render(request, 'carehome/create_handover.html', {
+        'form': form,
+        'resident': resident
+    })
 
 
 @login_required

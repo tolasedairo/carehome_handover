@@ -30,4 +30,5 @@ urlpatterns = [
     path('handovers/', handover_list, name='handover_list'),
     path('handovers/create/', create_handover, name='create_handover'),
     path('residents/<int:resident_id>/handovers/', resident_handovers, name='resident_handovers'),
+    path('residents/<int:resident_id>/add_handover/', create_handover, name='create_handover'),
 ]
