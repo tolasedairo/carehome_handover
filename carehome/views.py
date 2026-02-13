@@ -2,6 +2,8 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from .decorators import role_based_access
 from .models import Resident
+from .models import Handover
+from django.contrib.auth.decorators import login_required
 
 
 # Create your views here.
@@ -17,10 +19,32 @@ def residents_list(request):
         residents = Resident.objects.all()  # Full info
     else:
         # Carers only see limited info
-        residents = Resident.objects.all().only('id', 'first_name', 'last_name', 'room_number')
+        residents = Resident.objects.all().only(
+            'id', 'first_name', 'last_name', 'room_number'
+        )
 
     context = {
         'residents': residents,
         'user_role': user_role
     }
     return render(request, 'carehome/residents_list.html', context)
+
+
+@login_required
+@role_based_access(['manager', 'senior_carer', 'carer'])
+def handover_list(request):
+
+    if request.user.role in ['manager', 'senior_carer']:
+        handovers = Handover.objects.all().order_by('-created_at')
+    else:
+        # carers see limited info
+        handovers = Handover.objects.all().only(
+            'resident',
+            'shift',
+            'notes',
+            'created_at'
+        ).order_by('-created_at')
+
+    return render(request, 'carehome/handover_list.html', {
+        'handovers': handovers
+    })

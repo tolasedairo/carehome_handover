@@ -1,0 +1,14 @@
+<h2>Handovers</h2>
+
+<ul>
+    {% for handover in handovers %}
+        <li>
+            Resident: {{ handover.resident }} |
+            Shift: {{ handover.shift }} |
+            Notes: {{ handover.notes }} |
+            Created: {{ handover.created_at }}
+        </li>
+    {% empty %}
+        <li>No handovers found.</li>
+    {% endfor %}
+</ul>
