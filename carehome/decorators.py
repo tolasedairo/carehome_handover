@@ -2,18 +2,19 @@ from django.shortcuts import redirect
 from functools import wraps
 
 
-def role_based_access(allowed_roles=[]):
+def role_required(allowed_roles):
     """
-    Restrict access to views based on user role.
-    Example:
-        @role_based_access(['manager', 'senior_carer', 'carer'])
+    Only allow users whose role is in allowed_roles.
+    Redirect others to home.
     """
     def decorator(view_func):
         @wraps(view_func)
         def wrapper(request, *args, **kwargs):
-            if (request.user.is_authenticated and
-                    request.user.role in allowed_roles):
-                return view_func(request, *args, **kwargs)
-            return redirect('/')  # Unauthorized users go to home
+            if not request.user.is_authenticated:
+                return redirect('account_login')  # redirect if not logged in
+            if request.user.role not in allowed_roles:
+                return redirect('home')  # or render 403 page
+            return view_func(request, *args, **kwargs)
         return wrapper
     return decorator
+
