@@ -16,19 +16,10 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from carehome.views import (
-    home, residents_list, resident_handovers, create_handover,
-    handover_list, dashboard
-)
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('accounts/', include('allauth.urls')),  # Allauth login/logout/signup
-    path('', home, name='home'),  # root route
-    path('residents/', residents_list, name='residents_list'),
-    path('handovers/', handover_list, name='handover_list'),
-    path('handovers/create/', create_handover, name='create_handover'),
-    path('residents/<int:resident_id>/handovers/', resident_handovers, name='resident_handovers'),
-    path('residents/<int:resident_id>/add_handover/', create_handover, name='create_handover'),
-    path('dashboard/', dashboard, name='dashboard'),
+    path('accounts/', include('allauth.urls')),
+    path('', include('carehome.urls')),  # this connects your app
 ]

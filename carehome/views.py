@@ -11,8 +11,7 @@ from django.shortcuts import get_object_or_404
 
 # Create your views here.
 def home(request):
-    return HttpResponse("Welcome to Care Home Handover App")
-
+    return render(request, "carehome/home.html")
 
 @role_based_access(['manager', 'senior_carer', 'carer'])
 def residents_list(request):
