@@ -1,15 +1,19 @@
-<h2>Handovers</h2>
+{% extends "carehome/base.html" %}
 
-<ul>
+{% block content %}
+<h2>All Handovers</h2>
+
+<ul class="list-group mb-3">
     {% for handover in handovers %}
-        <li>
-            Resident: {{ handover.resident }} |
-            Shift: {{ handover.shift }} |
-            Notes: {{ handover.notes }} |
-            Created By: {{ handover.created_by }} |
-            Created: {{ handover.created_at }}
+        <li class="list-group-item">
+            <strong>Resident:</strong> {{ handover.resident }} <br>
+            <strong>Shift:</strong> {{ handover.shift }} <br>
+            <strong>Notes:</strong> {{ handover.notes }} <br>
+            <strong>Created By:</strong> {{ handover.created_by }} <br>
+            <strong>Created:</strong> {{ handover.created_at|date:"M d, Y, g:i a" }}
         </li>
     {% empty %}
-        <li>No handovers found.</li>
+        <li class="list-group-item">No handovers yet.</li>
     {% endfor %}
 </ul>
+{% endblock %}

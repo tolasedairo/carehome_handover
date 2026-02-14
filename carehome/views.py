@@ -87,3 +87,23 @@ def resident_handovers(request, resident_id):
         'resident': resident,
         'handovers': handovers
     })
+
+
+@login_required
+@role_based_access(['manager', 'senior_carer'])
+def dashboard(request):
+    # Get summary info
+    residents_count = Resident.objects.count()
+    handovers_count = Handover.objects.count()
+    recent_handovers = Handover.objects.all().order_by(
+        '-created_at'
+    )[:5]  # latest 5
+
+    context = {
+        'residents_count': residents_count,
+        'handovers_count': handovers_count,
+        'recent_handovers': recent_handovers,
+        'user_role': request.user.role
+    }
+
+    return render(request, 'carehome/dashboard.html', context)

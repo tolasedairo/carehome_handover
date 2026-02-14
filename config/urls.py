@@ -16,11 +16,10 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from carehome.views import home, residents_list
-from carehome.views import handover_list
-from carehome.views import create_handover
-from carehome.views import resident_handovers
-
+from carehome.views import (
+    home, residents_list, resident_handovers, create_handover,
+    handover_list, dashboard
+)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -31,4 +30,5 @@ urlpatterns = [
     path('handovers/create/', create_handover, name='create_handover'),
     path('residents/<int:resident_id>/handovers/', resident_handovers, name='resident_handovers'),
     path('residents/<int:resident_id>/add_handover/', create_handover, name='create_handover'),
+    path('dashboard/', dashboard, name='dashboard'),
 ]

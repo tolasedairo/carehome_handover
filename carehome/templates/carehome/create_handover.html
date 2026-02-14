@@ -1,21 +1,12 @@
-<h2>Create Handover</h2>
+{% extends "carehome/base.html" %}
 
-<p>Resident: {{ resident.first_name }} {{ resident.last_name }} (Room {{ resident.room_number }})</p>
+{% block content %}
+<h2>Create Handover for {{ resident.first_name }} {{ resident.last_name }}</h2>
 
-<form method="POST">
+<form method="post" class="mt-3">
     {% csrf_token %}
-    
-    <p>
-        <label for="id_shift">Shift:</label><br>
-        {{ form.shift }}
-    </p>
-    
-    <p>
-        <label for="id_notes">Notes:</label><br>
-        {{ form.notes }}
-    </p>
-    
-    <button type="submit">Submit</button>
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">Submit</button>
+    <a class="btn btn-secondary" href="{% url 'resident_handovers' resident.id %}">Cancel</a>
 </form>
-
-<a href="{% url 'resident_handovers' resident.id %}">Back to Handovers</a>
+{% endblock %}

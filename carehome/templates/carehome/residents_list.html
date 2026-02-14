@@ -1,22 +1,15 @@
-<!-- carehome/templates/carehome/residents_list.html -->
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Residents List</title>
-</head>
-<body>
-    <h1>Residents List</h1>
-    <p>User Role: {{ user_role }}</p>
+{% extends "carehome/base.html" %}
 
-    <ul>
-        {% for resident in residents %}
-            <li>
-                {{ resident.first_name }} {{ resident.last_name }} - Room: {{ resident.room_number }}
-                | <a href="{% url 'resident_handovers' resident.id %}">View Handovers</a>
-            </li>
-        {% empty %}
-            <li>No residents found.</li>
-        {% endfor %}
-    </ul>
-</body>
-</html>
+{% block content %}
+<h2>Residents List</h2>
+<p>User Role: {{ user_role }}</p>
+
+<ul class="list-group">
+{% for resident in residents %}
+    <li class="list-group-item d-flex justify-content-between align-items-center">
+        {{ resident.first_name }} {{ resident.last_name }} - Room: {{ resident.room_number }}
+        <a class="btn btn-sm btn-primary" href="{% url 'resident_handovers' resident.id %}">View Handovers</a>
+    </li>
+{% endfor %}
+</ul>
+{% endblock %}

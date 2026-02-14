@@ -1,32 +1,24 @@
+{% extends "carehome/base.html" %}
+
+{% block content %}
 <h2>Handovers for {{ resident.first_name }} {{ resident.last_name }} (Room {{ resident.room_number }})</h2>
 
-{% if handovers %}
-    <table border="1" cellpadding="8" cellspacing="0">
-        <thead>
-            <tr>
-                <th>Shift</th>
-                <th>Notes</th>
-                <th>Created By</th>
-                <th>Created At</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for handover in handovers %}
-                <tr>
-                    <td>{{ handover.shift|title }}</td>
-                    <td>{{ handover.notes }}</td>
-                    <td>{{ handover.created_by }}</td>
-                    <td>{{ handover.created_at|date:"M. d, Y, h:i a" }}</td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-{% else %}
-    <p>No handovers for this resident.</p>
-{% endif %}
+<ul class="list-group mb-3">
+    {% for handover in handovers %}
+        <li class="list-group-item">
+            <strong>Shift:</strong> {{ handover.shift }} <br>
+            <strong>Notes:</strong> {{ handover.notes }} <br>
+            <strong>Created By:</strong> {{ handover.created_by }} <br>
+            <strong>Created:</strong> {{ handover.created_at|date:"M d, Y, g:i a" }}
+        </li>
+    {% empty %}
+        <li class="list-group-item">No handovers for this resident.</li>
+    {% endfor %}
+</ul>
 
-<a href="{% url 'residents_list' %}">Back to Residents</a>
+<a class="btn btn-secondary" href="{% url 'residents_list' %}">Back to Residents</a>
 
 {% if user.role in 'manager senior_carer carer' %}
-    | <a href="{% url 'create_handover' resident.id %}">Add Handover</a>
+    <a class="btn btn-success ms-2" href="{% url 'create_handover' resident.id %}">Add Handover</a>
 {% endif %}
+{% endblock %}
