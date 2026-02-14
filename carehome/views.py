@@ -1,28 +1,27 @@
-from django.shortcuts import render
-from django.http import HttpResponse
-from .decorators import role_based_access
-from .models import Resident
-from .models import Handover
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from .models import Resident, Handover
 from .forms import HandoverForm
-from django.shortcuts import redirect
-from django.shortcuts import get_object_or_404
+from .decorators import role_required
 
 
-# Create your views here.
+# Home page
 def home(request):
     return render(request, "carehome/home.html")
 
-@role_based_access(['manager', 'senior_carer', 'carer'])
+
+#  Residents views
+@login_required
+@role_required(['manager', 'senior_carer'])
 def residents_list(request):
+    """List residents with different info depending on role."""
     user_role = request.user.role
 
-    if user_role in ['manager', 'senior_carer']:
-        residents = Resident.objects.all()  # Full info
-    else:
-        # Carers only see limited info
+    if user_role == 'manager':
+        residents = Resident.objects.all()  # full info
+    else:  # senior_carer
         residents = Resident.objects.all().only(
-            'id', 'first_name', 'last_name', 'room_number'
+            'id', 'first_name', 'last_name', 'room_number', 'care_plan'
         )
 
     context = {
@@ -32,19 +31,18 @@ def residents_list(request):
     return render(request, 'carehome/residents_list.html', context)
 
 
+# Handovers views
 @login_required
-@role_based_access(['manager', 'senior_carer', 'carer'])
+@role_required(['manager', 'senior_carer', 'carer'])
 def handover_list(request):
+    """List all handovers depending on user role."""
+    user_role = request.user.role
 
-    if request.user.role in ['manager', 'senior_carer']:
+    if user_role in ['manager', 'senior_carer']:
         handovers = Handover.objects.all().order_by('-created_at')
-    else:
-        # carers see limited info
+    else:  # carer
         handovers = Handover.objects.all().only(
-            'resident',
-            'shift',
-            'notes',
-            'created_at'
+            'resident', 'shift', 'notes', 'created_at'
         ).order_by('-created_at')
 
     return render(request, 'carehome/handover_list.html', {
@@ -53,15 +51,16 @@ def handover_list(request):
 
 
 @login_required
-@role_based_access(['manager', 'senior_carer', 'carer'])
+@role_required(['manager', 'senior_carer', 'carer'])
 def create_handover(request, resident_id):
+    """Create a new handover for a resident."""
     resident = get_object_or_404(Resident, id=resident_id)
 
     if request.method == 'POST':
         form = HandoverForm(request.POST)
         if form.is_valid():
             handover = form.save(commit=False)
-            handover.resident = resident  # <-- Link to resident
+            handover.resident = resident
             handover.created_by = request.user
             handover.save()
             return redirect('resident_handovers', resident_id=resident.id)
@@ -75,11 +74,10 @@ def create_handover(request, resident_id):
 
 
 @login_required
-@role_based_access(['manager', 'senior_carer', 'carer'])
+@role_required(['manager', 'senior_carer', 'carer'])
 def resident_handovers(request, resident_id):
-
+    """View all handovers for a single resident."""
     resident = get_object_or_404(Resident, id=resident_id)
-
     handovers = resident.handovers.all().order_by('-created_at')
 
     return render(request, 'carehome/resident_handovers.html', {
@@ -88,15 +86,14 @@ def resident_handovers(request, resident_id):
     })
 
 
+#  Dashboard view
 @login_required
-@role_based_access(['manager', 'senior_carer'])
+@role_required(['manager', 'senior_carer'])
 def dashboard(request):
-    # Get summary info
+    """Dashboard showing summary info and recent handovers."""
     residents_count = Resident.objects.count()
     handovers_count = Handover.objects.count()
-    recent_handovers = Handover.objects.all().order_by(
-        '-created_at'
-    )[:5]  # latest 5
+    recent_handovers = Handover.objects.all().order_by('-created_at')[:5]
 
     context = {
         'residents_count': residents_count,
