@@ -1,42 +1,24 @@
 {% extends "carehome/base.html" %}
+{% load crispy_forms_tags %}
 
 {% block content %}
 <div class="container mt-5">
     <div class="row justify-content-center">
-        <div class="col-lg-5 col-md-7">
-            <div class="card shadow">
-                <div class="card-header bg-success text-white text-center">
-                    <h4 class="mb-0">Create Account</h4>
+        <div class="col-md-5">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="m-0">Sign Up</h4>
                 </div>
-
                 <div class="card-body">
-                    <form method="post">
+                    <form method="post" action="{% url 'account_signup' %}">
                         {% csrf_token %}
-
-                        {% for field in form %}
-                            <div class="mb-3">
-                                <label class="form-label">{{ field.label }}</label>
-                                {{ field }}
-                                {% if field.errors %}
-                                    <div class="text-danger small">
-                                        {{ field.errors }}
-                                    </div>
-                                {% endif %}
-                            </div>
-                        {% endfor %}
-
-                        <button type="submit" class="btn btn-success w-100">
-                            Sign Up
-                        </button>
+                        {{ form|crispy }}
+                        <button type="submit" class="btn btn-success w-100">Create Account</button>
                     </form>
-
                     <hr>
-                    <div class="text-center">
-                        Already registered?
-                        <a href="{% url 'account_login' %}">
-                            Login
-                        </a>
-                    </div>
+                    <p class="text-center small mb-0">
+                        Already have an account? <a href="{% url 'account_login' %}">Login here</a>
+                    </p>
                 </div>
             </div>
         </div>

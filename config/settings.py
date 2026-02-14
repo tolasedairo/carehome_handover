@@ -43,12 +43,15 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'carehome',
+    'crispy_forms',
+    'crispy_bootstrap5',
     # allauth apps
     'django.contrib.sites',  # required by allauth
     'allauth',
     'allauth.account',
     'allauth.socialaccount',  # we won't use social logins for sensitivity of privacy in care homes.
 ]
+
 
 SITE_ID = 1
 
@@ -107,6 +110,10 @@ TEMPLATES = [
     },
 ]
 
+
+CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
+CRISPY_TEMPLATE_PACK = "bootstrap5"
+
 WSGI_APPLICATION = 'config.wsgi.application'
 
 
@@ -142,6 +149,10 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Password reset email backend
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# Email branding
+DEFAULT_FROM_EMAIL = "no-reply@carehome.local"
+ACCOUNT_EMAIL_SUBJECT_PREFIX = "CareHome System"
 
 
 # Internationalization
