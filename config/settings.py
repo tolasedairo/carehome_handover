@@ -67,6 +67,13 @@ ACCOUNT_EMAIL_VERIFICATION = 'none'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 
+
+ACCOUNT_FORMS = {
+    'signup': 'carehome.forms.CustomSignupForm',
+    'reset_password': 'carehome.forms.CustomResetPasswordForm',
+}
+
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
