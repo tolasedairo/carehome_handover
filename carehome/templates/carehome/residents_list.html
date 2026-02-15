@@ -2,57 +2,164 @@
 
 {% block content %}
 <div class="container mt-4">
-    <h2 class="mb-4">Residents</h2>
 
-    <div class="row">
-        {% for resident in residents %}
-        <div class="col-md-6 mb-4">
-            <div class="card shadow-sm">
-                <div class="card-body">
-
-                    <h5 class="card-title">
-                        {{ resident.first_name }} {{ resident.last_name }}
-                    </h5>
-
-                    <p class="text-muted mb-2">
-                        Room: {{ resident.room_number }}
-                    </p>
-
-                    {% if user.role == 'manager' or user.role == 'senior_carer' %}
-                        <hr>
-                        <p>
-                            <strong>Care Plan:</strong><br>
-                            {{ resident.care_plan|default:"No care plan available" }}
-                        </p>
-                    {% endif %}
-
-                    <div class="mt-3 d-flex flex-wrap gap-2">
-
-                        <a href="{% url 'create_handover' resident.id %}"
-                           class="btn btn-success btn-sm">
-                            Add Handover
-                        </a>
-
-                        <a href="{% url 'resident_handovers' resident.id %}"
-                           class="btn btn-outline-primary btn-sm">
-                            View Handovers
-                        </a>
-
-                        {% if user.role == 'manager' or user.role == 'senior_carer' %}
-                            <a href="{% url 'manage_careplan' resident.id %}"
-                               class="btn btn-warning btn-sm">
-                                Manage Care Plan
-                            </a>
-                        {% endif %}
-
-                    </div>
-
-                </div>
-            </div>
-        </div>
-        {% empty %}
-            <p>No residents available.</p>
-        {% endfor %}
+  <!-- Section Header -->
+  <div class="d-flex justify-content-between align-items-center mb-2">
+    <div>
+      <h2 class="mb-0">Residents</h2>
+      <small class="text-muted">
+        {{ residents.paginator.count }} total |
+        Logged in as {{ user.username }} ({{ user.role|title }})
+      </small>
     </div>
+
+    {% if user.role == 'manager' %}
+      <a href="#" class="btn btn-primary">
+        + Add Resident
+      </a>
+    {% endif %}
+  </div>
+
+  <!-- Search -->
+  <form method="get" class="mb-4">
+    <div class="input-group">
+      <input
+        type="text"
+        name="q"
+        class="form-control"
+        placeholder="Search by name or room..."
+        value="{{ request.GET.q|default:'' }}"
+      />
+      <button class="btn btn-outline-secondary" type="submit">
+        Search
+      </button>
+      {% if request.GET.q %}
+        <a href="{% url 'residents_list' %}" class="btn btn-outline-danger">
+          Clear
+        </a>
+      {% endif %}
+    </div>
+  </form>
+
+  <!-- Residents Grid -->
+  <div class="row">
+    {% for resident in residents %}
+      <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card shadow-sm border-0 h-100">
+
+          <div class="card-body">
+
+            <!-- Resident Info -->
+            <h5 class="card-title mb-1">
+              {{ resident.first_name }} {{ resident.last_name }}
+            </h5>
+
+            <small class="text-muted">
+              Room {{ resident.room_number }}
+            </small>
+
+            {% if user.role == 'manager' or user.role == 'senior_carer' %}
+              <hr>
+              <div class="small">
+                <strong>Care Plan</strong>
+                <p class="mb-0 text-muted">
+                  {{ resident.care_plan|default:"No care plan recorded." }}
+                </p>
+              </div>
+            {% endif %}
+
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="card-footer bg-white border-0">
+            <div class="d-flex flex-wrap gap-2">
+
+              <a
+                href="{% url 'create_handover' resident.id %}"
+                class="btn btn-success btn-sm"
+              >
+                Add Handover
+              </a>
+
+              <a
+                href="{% url 'resident_handovers' resident.id %}"
+                class="btn btn-outline-primary btn-sm"
+              >
+                View Handovers
+              </a>
+
+              {% if user.role == 'manager' or user.role == 'senior_carer' %}
+                <a
+                  href="{% url 'manage_careplan' resident.id %}"
+                  class="btn btn-warning btn-sm"
+                >
+                  Manage Care Plan
+                </a>
+              {% endif %}
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+    {% empty %}
+      <div class="col-12">
+        <div class="alert alert-info">
+          No residents found.
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+  <!-- Pagination -->
+  {% if residents.has_other_pages %}
+    <nav class="mt-4">
+      <ul class="pagination justify-content-center">
+
+        {% if residents.has_previous %}
+          <li class="page-item">
+            <a class="page-link"
+               href="?q={{ request.GET.q|default:'' }}&page={{ residents.previous_page_number }}">
+              Previous
+            </a>
+          </li>
+        {% else %}
+          <li class="page-item disabled">
+            <span class="page-link">Previous</span>
+          </li>
+        {% endif %}
+
+        {% for num in residents.paginator.page_range %}
+          {% if residents.number == num %}
+            <li class="page-item active">
+              <span class="page-link">{{ num }}</span>
+            </li>
+          {% else %}
+            <li class="page-item">
+              <a class="page-link"
+                 href="?q={{ request.GET.q|default:'' }}&page={{ num }}">
+                {{ num }}
+              </a>
+            </li>
+          {% endif %}
+        {% endfor %}
+
+        {% if residents.has_next %}
+          <li class="page-item">
+            <a class="page-link"
+               href="?q={{ request.GET.q|default:'' }}&page={{ residents.next_page_number }}">
+              Next
+            </a>
+          </li>
+        {% else %}
+          <li class="page-item disabled">
+            <span class="page-link">Next</span>
+          </li>
+        {% endif %}
+
+      </ul>
+    </nav>
+  {% endif %}
+
 </div>
 {% endblock %}

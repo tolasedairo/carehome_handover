@@ -1,58 +1,80 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
+from django.db.models import Q
+
 from .models import Resident, Handover
 from .forms import HandoverForm
 from .decorators import role_required
 
 
-# Home page
+# ==============================
+# Home Page
+# ==============================
 def home(request):
     return render(request, "carehome/home.html")
 
 
-#  Residents views
+# ==============================
+# Residents List View
+# ==============================
 @login_required
 @role_required(['manager', 'senior_carer', 'carer'])
 def residents_list(request):
-    """
-    All roles can see residents.
-    Managers & senior carers see care plan.
-    Carers see basic info only.
-    """
-    residents = Resident.objects.all()
+    query = request.GET.get('q', '').strip()
+
+    residents = Resident.objects.all().order_by('last_name', 'first_name')
+
+    if query:
+        residents = residents.filter(
+            Q(first_name__icontains=query) |
+            Q(last_name__icontains=query) |
+            Q(room_number__icontains=query)
+        ).distinct()
+
+    paginator = Paginator(residents, 10)  # 10 residents per page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
 
     context = {
-        'residents': residents,
-        'user_role': request.user.role
+        'residents': page_obj,
+        'page_obj': page_obj,
+        'query': query,
     }
 
     return render(request, 'carehome/residents_list.html', context)
 
 
-
-# Handovers views
+# ==============================
+# All Handovers List
+# ==============================
 @login_required
 @role_required(['manager', 'senior_carer', 'carer'])
 def handover_list(request):
-    """List all handovers depending on user role."""
     user_role = request.user.role
 
     if user_role in ['manager', 'senior_carer']:
-        handovers = Handover.objects.all().order_by('-created_at')
-    else:  # carer
-        handovers = Handover.objects.all().only(
-            'resident', 'shift', 'notes', 'created_at'
-        ).order_by('-created_at')
+        handovers = Handover.objects.select_related('resident', 'created_by') \
+            .order_by('-created_at')
+    else:
+        # Carers see limited fields (performance optimization)
+        handovers = Handover.objects.select_related('resident') \
+            .only('resident', 'shift', 'notes', 'created_at') \
+            .order_by('-created_at')
 
-    return render(request, 'carehome/handover_list.html', {
+    context = {
         'handovers': handovers
-    })
+    }
+
+    return render(request, 'carehome/handover_list.html', context)
 
 
+# ==============================
+# Create Handover
+# ==============================
 @login_required
 @role_required(['manager', 'senior_carer', 'carer'])
 def create_handover(request, resident_id):
-    """Create a new handover for a resident."""
     resident = get_object_or_404(Resident, id=resident_id)
 
     if request.method == 'POST':
@@ -66,55 +88,69 @@ def create_handover(request, resident_id):
     else:
         form = HandoverForm()
 
-    return render(request, 'carehome/create_handover.html', {
+    context = {
         'form': form,
         'resident': resident
-    })
+    }
+
+    return render(request, 'carehome/create_handover.html', context)
 
 
+# ==============================
+# Resident Handovers
+# ==============================
 @login_required
 @role_required(['manager', 'senior_carer', 'carer'])
 def resident_handovers(request, resident_id):
-    """View all handovers for a single resident."""
     resident = get_object_or_404(Resident, id=resident_id)
-    handovers = resident.handovers.all().order_by('-created_at')
 
-    return render(request, 'carehome/resident_handovers.html', {
+    handovers = resident.handovers.select_related('created_by') \
+        .order_by('-created_at')
+
+    context = {
         'resident': resident,
         'handovers': handovers
-    })
+    }
+
+    return render(request, 'carehome/resident_handovers.html', context)
 
 
-#  Dashboard view
+# ==============================
+# Dashboard (Manager + Senior Only)
+# ==============================
 @login_required
 @role_required(['manager', 'senior_carer'])
 def dashboard(request):
-    """Dashboard showing summary info and recent handovers."""
     residents_count = Resident.objects.count()
     handovers_count = Handover.objects.count()
-    recent_handovers = Handover.objects.all().order_by('-created_at')[:5]
+
+    recent_handovers = Handover.objects.select_related('resident') \
+        .order_by('-created_at')[:5]
 
     context = {
         'residents_count': residents_count,
         'handovers_count': handovers_count,
         'recent_handovers': recent_handovers,
-        'user_role': request.user.role
     }
 
     return render(request, 'carehome/dashboard.html', context)
 
 
-# Care plan management (manager and senior_carer only)
+# ==============================
+# Manage Care Plan
+# ==============================
 @login_required
 @role_required(['manager', 'senior_carer'])
 def manage_careplan(request, resident_id):
     resident = get_object_or_404(Resident, id=resident_id)
 
     if request.method == 'POST':
-        resident.care_plan = request.POST.get('care_plan')
+        resident.care_plan = request.POST.get('care_plan', '').strip()
         resident.save()
         return redirect('residents_list')
 
-    return render(request, 'carehome/manage_careplan.html', {
+    context = {
         'resident': resident
-    })
+    }
+
+    return render(request, 'carehome/manage_careplan.html', context)

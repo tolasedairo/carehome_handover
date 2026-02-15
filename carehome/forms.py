@@ -26,3 +26,6 @@ class CustomResetPasswordForm(ResetPasswordForm):
             'placeholder': 'Enter your email address'
         })
     )
+
+
+
