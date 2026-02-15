@@ -36,13 +36,11 @@ def residents_list(request):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
-    context = {
+    return render(request, 'carehome/residents_list.html', {
         'residents': page_obj,
         'page_obj': page_obj,
         'query': query,
-    }
-
-    return render(request, 'carehome/residents_list.html', context)
+    })
 
 
 # ==============================
@@ -128,13 +126,13 @@ def dashboard(request):
 
 
 # ==============================
-# Manage Care Plan (NEW STRUCTURED VERSION)
+# Manage Care Plan (Structured)
 # ==============================
 @login_required
 @role_required(['manager', 'senior_carer'])
 def manage_careplan(request, resident_id):
     resident = get_object_or_404(Resident, id=resident_id)
-    sections = resident.careplan_sections.all()
+    sections = resident.care_sections.all()  # Use related_name from model
 
     if request.method == 'POST':
         form = CarePlanSectionForm(request.POST)
