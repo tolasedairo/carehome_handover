@@ -3,8 +3,8 @@ from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db.models import Q
 
-from .models import Resident, Handover
-from .forms import HandoverForm
+from .models import Resident, Handover, CarePlanSection
+from .forms import ResidentForm, HandoverForm, CarePlanSectionForm
 from .decorators import role_required
 
 
@@ -32,7 +32,7 @@ def residents_list(request):
             Q(room_number__icontains=query)
         ).distinct()
 
-    paginator = Paginator(residents, 10)  # 10 residents per page
+    paginator = Paginator(residents, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
@@ -57,16 +57,13 @@ def handover_list(request):
         handovers = Handover.objects.select_related('resident', 'created_by') \
             .order_by('-created_at')
     else:
-        # Carers see limited fields (performance optimization)
         handovers = Handover.objects.select_related('resident') \
             .only('resident', 'shift', 'notes', 'created_at') \
             .order_by('-created_at')
 
-    context = {
+    return render(request, 'carehome/handover_list.html', {
         'handovers': handovers
-    }
-
-    return render(request, 'carehome/handover_list.html', context)
+    })
 
 
 # ==============================
@@ -86,14 +83,12 @@ def create_handover(request, resident_id):
             handover.save()
             return redirect('resident_handovers', resident_id=resident.id)
     else:
-        form = HandoverForm()
+        form = HandoverForm(initial={'resident': resident})
 
-    context = {
+    return render(request, 'carehome/create_handover.html', {
         'form': form,
         'resident': resident
-    }
-
-    return render(request, 'carehome/create_handover.html', context)
+    })
 
 
 # ==============================
@@ -107,12 +102,10 @@ def resident_handovers(request, resident_id):
     handovers = resident.handovers.select_related('created_by') \
         .order_by('-created_at')
 
-    context = {
+    return render(request, 'carehome/resident_handovers.html', {
         'resident': resident,
         'handovers': handovers
-    }
-
-    return render(request, 'carehome/resident_handovers.html', context)
+    })
 
 
 # ==============================
@@ -127,30 +120,83 @@ def dashboard(request):
     recent_handovers = Handover.objects.select_related('resident') \
         .order_by('-created_at')[:5]
 
-    context = {
+    return render(request, 'carehome/dashboard.html', {
         'residents_count': residents_count,
         'handovers_count': handovers_count,
         'recent_handovers': recent_handovers,
-    }
-
-    return render(request, 'carehome/dashboard.html', context)
+    })
 
 
 # ==============================
-# Manage Care Plan
+# Manage Care Plan (NEW STRUCTURED VERSION)
 # ==============================
 @login_required
 @role_required(['manager', 'senior_carer'])
 def manage_careplan(request, resident_id):
     resident = get_object_or_404(Resident, id=resident_id)
+    sections = resident.careplan_sections.all()
 
     if request.method == 'POST':
-        resident.care_plan = request.POST.get('care_plan', '').strip()
-        resident.save()
+        form = CarePlanSectionForm(request.POST)
+        if form.is_valid():
+            section = form.save(commit=False)
+            section.resident = resident
+            section.save()
+            return redirect('manage_careplan', resident_id=resident.id)
+    else:
+        form = CarePlanSectionForm()
+
+    return render(request, 'carehome/manage_careplan.html', {
+        'resident': resident,
+        'sections': sections,
+        'form': form,
+    })
+
+
+# ==============================
+# Add Resident
+# ==============================
+@login_required
+@role_required(['manager'])
+def add_resident(request):
+    if request.method == 'POST':
+        form = ResidentForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            return redirect('residents_list')
+    else:
+        form = ResidentForm()
+
+    return render(request, 'carehome/add_resident.html', {
+        'form': form
+    })
+
+
+# ==============================
+# Delete Resident
+# ==============================
+@login_required
+@role_required(['manager'])
+def delete_resident(request, resident_id):
+    resident = get_object_or_404(Resident, id=resident_id)
+
+    if request.method == 'POST':
+        resident.delete()
         return redirect('residents_list')
 
-    context = {
+    return render(request, 'carehome/delete_resident.html', {
         'resident': resident
-    }
+    })
 
-    return render(request, 'carehome/manage_careplan.html', context)
+
+# ==============================
+# Bulk Delete Residents
+# ==============================
+@login_required
+@role_required(['manager'])
+def bulk_delete_residents(request):
+    if request.method == "POST":
+        selected_ids = request.POST.getlist("selected_residents")
+        Resident.objects.filter(id__in=selected_ids).delete()
+
+    return redirect("residents_list")

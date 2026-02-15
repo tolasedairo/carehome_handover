@@ -1,12 +1,13 @@
 {% extends "carehome/base.html" %}
-
 {% block content %}
-<div class="container mt-4">
 
-  <!-- Section Header -->
-  <div class="d-flex justify-content-between align-items-center mb-2">
+<div class="container mt-5">
+
+  <!-- ================= HEADER ================= -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+
     <div>
-      <h2 class="mb-0">Residents</h2>
+      <h2 class="fw-bold mb-0">Residents</h2>
       <small class="text-muted">
         {{ residents.paginator.count }} total |
         Logged in as {{ user.username }} ({{ user.role|title }})
@@ -14,15 +15,26 @@
     </div>
 
     {% if user.role == 'manager' %}
-      <a href="#" class="btn btn-primary">
+    <div class="d-flex gap-2">
+      <a href="{% url 'add_resident' %}" class="btn btn-primary">
         + Add Resident
       </a>
+
+      <!-- This button submits the bulk delete form below -->
+      <button form="bulkDeleteForm"
+              type="submit"
+              class="btn btn-danger"
+              onclick="return confirm('Are you sure you want to permanently delete selected resident records?')">
+        Delete Resident Records
+      </button>
+    </div>
     {% endif %}
+
   </div>
 
-  <!-- Search -->
-  <form method="get" class="mb-4">
-    <div class="input-group">
+  <!-- ================= SEARCH ================= -->
+  <form method="get" class="mb-5">
+    <div class="input-group input-group-lg">
       <input
         type="text"
         name="q"
@@ -33,133 +45,152 @@
       <button class="btn btn-outline-secondary" type="submit">
         Search
       </button>
+
       {% if request.GET.q %}
-        <a href="{% url 'residents_list' %}" class="btn btn-outline-danger">
-          Clear
-        </a>
+      <a href="{% url 'residents_list' %}" class="btn btn-outline-danger">
+        Clear
+      </a>
       {% endif %}
     </div>
   </form>
 
-  <!-- Residents Grid -->
-  <div class="row">
-    {% for resident in residents %}
-      <div class="col-md-6 col-lg-4 mb-4">
-        <div class="card shadow-sm border-0 h-100">
+  <!-- ================= RESIDENT LIST ================= -->
 
-          <div class="card-body">
+  <!-- Separate form ONLY for bulk delete -->
+  <form id="bulkDeleteForm" method="post" action="{% url 'bulk_delete_residents' %}">
+    {% csrf_token %}
 
-            <!-- Resident Info -->
-            <h5 class="card-title mb-1">
-              {{ resident.first_name }} {{ resident.last_name }}
-            </h5>
+    <div class="row justify-content-center">
 
-            <small class="text-muted">
-              Room {{ resident.room_number }}
-            </small>
+      {% for resident in residents %}
 
-            {% if user.role == 'manager' or user.role == 'senior_carer' %}
-              <hr>
-              <div class="small">
-                <strong>Care Plan</strong>
-                <p class="mb-0 text-muted">
-                  {{ resident.care_plan|default:"No care plan recorded." }}
+      <div class="col-lg-8 mb-4">
+        <div class="card shadow border-0 rounded-4">
+
+          <div class="card-body p-4">
+
+            <div class="d-flex justify-content-between align-items-start">
+
+              <!-- Resident Info -->
+              <div>
+                <h4 class="fw-bold mb-1">
+                  {{ resident.first_name }} {{ resident.last_name }}
+                </h4>
+                <p class="text-muted mb-0">
+                  Room {{ resident.room_number }}
                 </p>
               </div>
+
+              <!-- Checkbox (Manager Only) -->
+              {% if user.role == 'manager' %}
+              <div>
+                <input type="checkbox"
+                       name="selected_residents"
+                       value="{{ resident.id }}"
+                       class="form-check-input fs-4">
+              </div>
+              {% endif %}
+
+            </div>
+
+            <!-- Care Plan Preview -->
+            {% if user.role == 'manager' or user.role == 'senior_carer' %}
+            <div class="bg-light p-4 rounded-4 my-4 text-center">
+              <h6 class="text-muted mb-2">Care Plan Sections</h6>
+              <p class="mb-0">
+                {{ resident.careplan_sections.count }} section{{ resident.careplan_sections.count|pluralize }}
+              </p>
+            </div>
             {% endif %}
 
-          </div>
+            <!-- Action Buttons -->
+            <div class="d-flex justify-content-center gap-3 flex-wrap">
 
-          <!-- Action Buttons -->
-          <div class="card-footer bg-white border-0">
-            <div class="d-flex flex-wrap gap-2">
-
-              <a
-                href="{% url 'create_handover' resident.id %}"
-                class="btn btn-success btn-sm"
-              >
+              <a href="{% url 'create_handover' resident.id %}"
+                 class="btn btn-success px-4">
                 Add Handover
               </a>
 
-              <a
-                href="{% url 'resident_handovers' resident.id %}"
-                class="btn btn-outline-primary btn-sm"
-              >
+              <a href="{% url 'resident_handovers' resident.id %}"
+                 class="btn btn-outline-primary px-4">
                 View Handovers
               </a>
 
               {% if user.role == 'manager' or user.role == 'senior_carer' %}
-                <a
-                  href="{% url 'manage_careplan' resident.id %}"
-                  class="btn btn-warning btn-sm"
-                >
-                  Manage Care Plan
-                </a>
+              <a href="{% url 'manage_careplan' resident.id %}"
+                 class="btn btn-warning px-4">
+                Manage Care Plan
+              </a>
               {% endif %}
 
             </div>
-          </div>
 
+          </div>
         </div>
       </div>
-    {% empty %}
+
+      {% empty %}
       <div class="col-12">
-        <div class="alert alert-info">
+        <div class="alert alert-info text-center">
           No residents found.
         </div>
       </div>
-    {% endfor %}
-  </div>
+      {% endfor %}
 
-  <!-- Pagination -->
+    </div>
+
+  </form>
+
+  <!-- ================= PAGINATION ================= -->
   {% if residents.has_other_pages %}
-    <nav class="mt-4">
-      <ul class="pagination justify-content-center">
+  <nav class="mt-4">
+    <ul class="pagination justify-content-center">
 
-        {% if residents.has_previous %}
-          <li class="page-item">
-            <a class="page-link"
-               href="?q={{ request.GET.q|default:'' }}&page={{ residents.previous_page_number }}">
-              Previous
-            </a>
-          </li>
+      {% if residents.has_previous %}
+      <li class="page-item">
+        <a class="page-link"
+           href="?q={{ request.GET.q|default:'' }}&page={{ residents.previous_page_number }}">
+          Previous
+        </a>
+      </li>
+      {% else %}
+      <li class="page-item disabled">
+        <span class="page-link">Previous</span>
+      </li>
+      {% endif %}
+
+      {% for num in residents.paginator.page_range %}
+        {% if residents.number == num %}
+        <li class="page-item active">
+          <span class="page-link">{{ num }}</span>
+        </li>
         {% else %}
-          <li class="page-item disabled">
-            <span class="page-link">Previous</span>
-          </li>
+        <li class="page-item">
+          <a class="page-link"
+             href="?q={{ request.GET.q|default:'' }}&page={{ num }}">
+            {{ num }}
+          </a>
+        </li>
         {% endif %}
+      {% endfor %}
 
-        {% for num in residents.paginator.page_range %}
-          {% if residents.number == num %}
-            <li class="page-item active">
-              <span class="page-link">{{ num }}</span>
-            </li>
-          {% else %}
-            <li class="page-item">
-              <a class="page-link"
-                 href="?q={{ request.GET.q|default:'' }}&page={{ num }}">
-                {{ num }}
-              </a>
-            </li>
-          {% endif %}
-        {% endfor %}
+      {% if residents.has_next %}
+      <li class="page-item">
+        <a class="page-link"
+           href="?q={{ request.GET.q|default:'' }}&page={{ residents.next_page_number }}">
+          Next
+        </a>
+      </li>
+      {% else %}
+      <li class="page-item disabled">
+        <span class="page-link">Next</span>
+      </li>
+      {% endif %}
 
-        {% if residents.has_next %}
-          <li class="page-item">
-            <a class="page-link"
-               href="?q={{ request.GET.q|default:'' }}&page={{ residents.next_page_number }}">
-              Next
-            </a>
-          </li>
-        {% else %}
-          <li class="page-item disabled">
-            <span class="page-link">Next</span>
-          </li>
-        {% endif %}
-
-      </ul>
-    </nav>
+    </ul>
+  </nav>
   {% endif %}
 
 </div>
+
 {% endblock %}
