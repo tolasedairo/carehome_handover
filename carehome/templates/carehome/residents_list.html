@@ -1,15 +1,58 @@
 {% extends "carehome/base.html" %}
 
 {% block content %}
-<h2>Residents List</h2>
-<p>User Role: {{ user_role }}</p>
+<div class="container mt-4">
+    <h2 class="mb-4">Residents</h2>
 
-<ul class="list-group">
-{% for resident in residents %}
-    <li class="list-group-item d-flex justify-content-between align-items-center">
-        {{ resident.first_name }} {{ resident.last_name }} - Room: {{ resident.room_number }}
-        <a class="btn btn-sm btn-primary" href="{% url 'resident_handovers' resident.id %}">View Handovers</a>
-    </li>
-{% endfor %}
-</ul>
+    <div class="row">
+        {% for resident in residents %}
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+
+                    <h5 class="card-title">
+                        {{ resident.first_name }} {{ resident.last_name }}
+                    </h5>
+
+                    <p class="text-muted mb-2">
+                        Room: {{ resident.room_number }}
+                    </p>
+
+                    {% if user.role == 'manager' or user.role == 'senior_carer' %}
+                        <hr>
+                        <p>
+                            <strong>Care Plan:</strong><br>
+                            {{ resident.care_plan|default:"No care plan available" }}
+                        </p>
+                    {% endif %}
+
+                    <div class="mt-3 d-flex flex-wrap gap-2">
+
+                        <a href="{% url 'create_handover' resident.id %}"
+                           class="btn btn-success btn-sm">
+                            Add Handover
+                        </a>
+
+                        <a href="{% url 'resident_handovers' resident.id %}"
+                           class="btn btn-outline-primary btn-sm">
+                            View Handovers
+                        </a>
+
+                        {% if user.role == 'manager' or user.role == 'senior_carer' %}
+                            <a href="{% url 'manage_careplan' resident.id %}"
+                               class="btn btn-warning btn-sm">
+                                Manage Care Plan
+                            </a>
+                        {% endif %}
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        {% empty %}
+            <p>No residents available.</p>
+        {% endfor %}
+    </div>
+</div>
 {% endblock %}

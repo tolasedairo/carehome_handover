@@ -12,23 +12,22 @@ def home(request):
 
 #  Residents views
 @login_required
-@role_required(['manager', 'senior_carer'])
+@role_required(['manager', 'senior_carer', 'carer'])
 def residents_list(request):
-    """List residents with different info depending on role."""
-    user_role = request.user.role
-
-    if user_role == 'manager':
-        residents = Resident.objects.all()  # full info
-    else:  # senior_carer
-        residents = Resident.objects.all().only(
-            'id', 'first_name', 'last_name', 'room_number', 'care_plan'
-        )
+    """
+    All roles can see residents.
+    Managers & senior carers see care plan.
+    Carers see basic info only.
+    """
+    residents = Resident.objects.all()
 
     context = {
         'residents': residents,
-        'user_role': user_role
+        'user_role': request.user.role
     }
+
     return render(request, 'carehome/residents_list.html', context)
+
 
 
 # Handovers views
@@ -103,3 +102,19 @@ def dashboard(request):
     }
 
     return render(request, 'carehome/dashboard.html', context)
+
+
+# Care plan management (manager and senior_carer only)
+@login_required
+@role_required(['manager', 'senior_carer'])
+def manage_careplan(request, resident_id):
+    resident = get_object_or_404(Resident, id=resident_id)
+
+    if request.method == 'POST':
+        resident.care_plan = request.POST.get('care_plan')
+        resident.save()
+        return redirect('residents_list')
+
+    return render(request, 'carehome/manage_careplan.html', {
+        'resident': resident
+    })

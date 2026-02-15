@@ -1,0 +1,23 @@
+{% extends "carehome/base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h3>Manage Care Plan for {{ resident.first_name }} {{ resident.last_name }}</h3>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label class="form-label">Care Plan</label>
+            <textarea name="care_plan" class="form-control" rows="5">
+{{ resident.care_plan }}
+            </textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">
+            Save Care Plan
+        </button>
+        <a href="{% url 'residents_list' %}" class="btn btn-secondary">
+            Cancel
+        </a>
+    </form>
+</div>
+{% endblock %}
