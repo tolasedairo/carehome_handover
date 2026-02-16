@@ -2,6 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Care Home Handover</title>
     <!-- Bootstrap 5 CSS -->
     <link
@@ -10,58 +11,54 @@
     />
   </head>
   <body>
-    <header class="bg-primary text-white p-3 mb-4">
-      <div class="container d-flex justify-content-between align-items-center">
+    <!-- ================= HEADER / NAVBAR ================= -->
+    <header class="bg-primary text-white mb-4">
+      <div class="container d-flex justify-content-between align-items-center py-3">
         <h1 class="h4 m-0">Care Home Handover</h1>
-        <nav>
+
+        <nav class="d-flex align-items-center">
           <a class="text-white me-3" href="{% url 'home' %}">Home</a>
 
           {% if user.is_authenticated %}
-          <a class="text-white me-3" href="{% url 'residents_list' %}"
-            >Residents</a
-          >
-          <a class="text-white me-3" href="{% url 'handover_list' %}"
-            >Handovers</a
-          >
+            <a class="text-white me-3" href="{% url 'residents_list' %}">Residents</a>
+            <a class="text-white me-3" href="{% url 'handover_list' %}">Handovers</a>
+            {% if user.role in 'manager senior_carer' %}
+              <a class="text-white me-3" href="{% url 'dashboard' %}">Dashboard</a>
+            {% endif %}
 
-          <span class="me-2">
-            Logged in as {{ user.username }} ({{ user.role }})
-          </span>
+            <span class="me-3">
+              Logged in as {{ user.username }} ({{ user.role|title }})
+            </span>
 
-          <!-- Proper POST logout -->
-          <form
-            method="post"
-            action="{% url 'account_logout' %}"
-            style="display: inline"
-          >
-            {% csrf_token %}
-            <button
-              type="submit"
-              class="btn btn-link text-white p-0 align-baseline"
-            >
-              Logout
-            </button>
-          </form>
+            <!-- Logout as POST -->
+            <form method="post" action="{% url 'account_logout' %}" class="d-inline">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-link text-white p-0 align-baseline">
+                Logout
+              </button>
+            </form>
 
           {% else %}
-          <a class="text-white me-3" href="{% url 'account_login' %}">Login</a>
-          <a class="text-white" href="{% url 'account_signup' %}">Sign Up</a>
+            <a class="text-white me-3" href="{% url 'account_login' %}">Login</a>
+            <a class="text-white" href="{% url 'account_signup' %}">Sign Up</a>
           {% endif %}
         </nav>
       </div>
     </header>
 
+    <!-- ================= MAIN CONTENT ================= -->
     <main class="container">
       {% block content %}
       <!-- Page content will appear here -->
       {% endblock %}
     </main>
 
-    <footer class="bg-light text-center py-3 mt-4">
+    <!-- ================= FOOTER ================= -->
+    <footer class="bg-light text-center py-3 mt-5">
       &copy; 2026 Care Home Handover
     </footer>
 
-    <!-- Bootstrap 5 JS (optional, for interactive components) -->
+    <!-- Bootstrap 5 JS (optional) -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
   </body>
 </html>

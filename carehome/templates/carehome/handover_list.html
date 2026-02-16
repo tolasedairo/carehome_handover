@@ -1,19 +1,42 @@
 {% extends "carehome/base.html" %}
 
 {% block content %}
-<h2>All Handovers</h2>
+<div class="container mt-5">
 
-<ul class="list-group mb-3">
-    {% for handover in handovers %}
-        <li class="list-group-item">
-            <strong>Resident:</strong> {{ handover.resident }} <br>
-            <strong>Shift:</strong> {{ handover.shift }} <br>
-            <strong>Notes:</strong> {{ handover.notes }} <br>
-            <strong>Created By:</strong> {{ handover.created_by }} <br>
-            <strong>Created:</strong> {{ handover.created_at|date:"M d, Y, g:i a" }}
-        </li>
-    {% empty %}
-        <li class="list-group-item">No handovers yet.</li>
-    {% endfor %}
-</ul>
+  <h3 class="mb-4">All Handovers</h3>
+
+  {% if handovers %}
+    <div class="row">
+      {% for handover in handovers %}
+        <div class="col-lg-8 mb-3">
+          <div class="card shadow-sm rounded-4">
+            <div class="card-body">
+
+              <h5 class="fw-bold mb-2">
+                {{ handover.resident.first_name }} {{ handover.resident.last_name }}
+              </h5>
+
+              <p class="mb-1"><strong>Shift:</strong> {{ handover.shift|title }}</p>
+              <p class="mb-1"><strong>Notes:</strong> {{ handover.notes|linebreaks }}</p>
+
+              {% if handover.created_by %}
+              <p class="mb-1"><strong>Created By:</strong> {{ handover.created_by.username }} ({{ handover.created_by.role|title }})</p>
+              {% endif %}
+
+              <p class="text-muted mb-0">
+                Created: {{ handover.created_at|date:"M d, Y, g:i a" }}
+              </p>
+
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="alert alert-info text-center">
+      No handovers have been recorded yet.
+    </div>
+  {% endif %}
+
+</div>
 {% endblock %}

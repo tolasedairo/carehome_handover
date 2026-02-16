@@ -3,10 +3,9 @@
 
 <div class="container mt-5">
 
+    <!-- Header -->
     <div class="text-center mb-4">
-        <h3 class="fw-bold">
-            Manage Care Plan
-        </h3>
+        <h3 class="fw-bold">Manage Care Plan</h3>
         <p class="text-muted">
             {{ resident.first_name }} {{ resident.last_name }} — Room {{ resident.room_number }}
         </p>
@@ -16,29 +15,24 @@
     <div class="row justify-content-center mb-5">
         <div class="col-lg-8">
 
-            {% if resident.careplan_sections.all %}
-                {% for section in resident.careplan_sections.all %}
+            {% if sections %}
+                {% for section in sections %}
                 <div class="card shadow-sm rounded-4 mb-4">
                     <div class="card-body p-4">
 
                         <h5 class="fw-bold mb-3">
-                            {{ section.section_type }}
+                            {{ section.get_section_type_display }}
                         </h5>
 
-                        <p><strong>Current Needs:</strong><br>
-                        {{ section.current_needs|linebreaks }}</p>
-
-                        <p><strong>Desired Outcomes:</strong><br>
-                        {{ section.desired_outcomes|linebreaks }}</p>
-
-                        <p><strong>Staff Support:</strong><br>
-                        {{ section.staff_support|linebreaks }}</p>
+                        <p><strong>Current Needs:</strong><br>{{ section.current_needs|linebreaks }}</p>
+                        <p><strong>Desired Outcomes:</strong><br>{{ section.desired_outcomes|linebreaks }}</p>
+                        <p><strong>Staff Support:</strong><br>{{ section.staff_support|linebreaks }}</p>
 
                         <p class="text-muted mb-0">
                             Started: {{ section.date_started }}
                             {% if section.ongoing %}
                                 | Ongoing
-                            {% else %}
+                            {% elif section.end_date %}
                                 | Ends: {{ section.end_date }}
                             {% endif %}
                         </p>
@@ -62,62 +56,30 @@
             <div class="card shadow rounded-4">
                 <div class="card-body p-4">
 
-                    <h5 class="fw-bold mb-4 text-center">
-                        Add New Care Plan Section
-                    </h5>
+                    <h5 class="fw-bold mb-4 text-center">Add New Care Plan Section</h5>
 
                     <form method="post">
                         {% csrf_token %}
+                        {{ form.non_field_errors }}
 
+                        {% for field in form %}
                         <div class="mb-3">
-                            <label class="form-label">Section Type</label>
-                            <input type="text" name="section_type" class="form-control" required>
+                            <label class="form-label">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.help_text %}
+                                <small class="text-muted">{{ field.help_text }}</small>
+                            {% endif %}
+                            {% for error in field.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                            {% endfor %}
                         </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Current Needs</label>
-                            <textarea name="current_needs" class="form-control" rows="3" required></textarea>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Desired Outcomes</label>
-                            <textarea name="desired_outcomes" class="form-control" rows="3" required></textarea>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Staff Support</label>
-                            <textarea name="staff_support" class="form-control" rows="3" required></textarea>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Start Date</label>
-                                <input type="date" name="date_started" class="form-control" required>
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">End Date</label>
-                                <input type="date" name="end_date" class="form-control">
-                            </div>
-                        </div>
-
-                        <div class="form-check mb-4">
-                            <input class="form-check-input"
-                                   type="checkbox"
-                                   name="ongoing"
-                                   id="ongoingCheck">
-                            <label class="form-check-label" for="ongoingCheck">
-                                Ongoing
-                            </label>
-                        </div>
+                        {% endfor %}
 
                         <div class="d-flex justify-content-center gap-3">
                             <button type="submit" class="btn btn-primary px-4">
                                 Save Section
                             </button>
-
-                            <a href="{% url 'residents_list' %}"
-                               class="btn btn-outline-secondary px-4">
+                            <a href="{% url 'residents_list' %}" class="btn btn-outline-secondary px-4">
                                 Back
                             </a>
                         </div>
